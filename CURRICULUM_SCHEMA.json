@@ -1,0 +1,58 @@
+[
+    {
+        "id": "1",
+        "title": "Bài 1: Làm quen với Scratch",
+        "description": "Khám phá giao diện và những khối lệnh đầu tiên.",
+        "content": [
+            "**Chào mừng bạn đến với Scratch!**",
+            "Trong bài này, chúng ta sẽ tìm hiểu về giao diện Scratch, nơi bạn sẽ sáng tạo ra những câu chuyện và trò chơi thú vị.",
+            "**Các thành phần chính:**",
+            "- **Sân khấu (Stage):** Nơi diễn ra hoạt động của nhân vật.",
+            "- **Nhân vật (Sprite):** Các đối tượng bạn điều khiển (mặc định là chú Mèo).",
+            "- **Khối lệnh (Blocks):** Các mảnh ghép dùng để lập trình."
+        ],
+        "practiceGuide": [
+            "1. Mở phần **Thực hành**.",
+            "2. Kéo khối **\"Di chuyển 10 bước\"** (Motion - Xanh dương) vào khu vực làm việc.",
+            "3. Nhấn vào khối lệnh để xem Mèo di chuyển.",
+            "4. Thử kéo khối **\"Xoay 15 độ\"** và ghép vào dưới khối di chuyển."
+        ]
+    },
+    {
+        "id": "2",
+        "title": "Bài 2: Chuyển động và Hướng",
+        "description": "Điều khiển nhân vật di chuyển chính xác trên sân khấu.",
+        "content": [
+            "**Hệ tọa độ:** Sân khấu Scratch sử dụng hệ tọa độ X (ngang) và Y (dọc). Tâm sân khấu có tọa độ (0, 0).",
+            "**Các lệnh chuyển động:**",
+            "- **Đi tới điểm x: y:**: Nhảy ngay tới vị trí cụ thể.",
+            "- **Lướt trong ... giây tới ...**: Di chuyển từ từ tới đích.",
+            "- **Đặt hướng bằng ...**: Quay mặt nhân vật về hướng chỉ định (90 là phải, -90 là trái)."
+        ],
+        "practiceGuide": [
+            "1. Tạo dự án mới.",
+            "2. Dùng khối **\"Khi nhấn cờ xanh\"** (Events - Vàng).",
+            "3. Ghép khối **\"Đi tới điểm x: 0 y: 0\"** để Mèo về giữa.",
+            "4. Thêm khối **\"Lướt trong 1 giây tới điểm x: 100 y: 100\"**.",
+            "5. Nhấn cờ xanh và quan sát đường đi của Mèo."
+        ]
+    },
+    {
+        "id": "3",
+        "title": "Bài 3: Ngoại hình và Hiệu ứng",
+        "description": "Thay đổi trang phục, màu sắc và kích thước nhân vật.",
+        "content": [
+            "**Nhóm lệnh Hiển thị (Looks - Tím):**",
+            "- **Nói \"Xin chào\"**: Hiện bóng đối thoại.",
+            "- **Đổi trang phục kế tiếp**: Tạo hiệu ứng hoạt hình (ví dụ: Mèo bước đi).",
+            "- **Đổi hiệu ứng màu**: Thay đổi màu sắc nhân vật.",
+            "- **Đặt kích thước**: Phóng to hoặc thu nhỏ nhân vật."
+        ],
+        "practiceGuide": [
+            "1. Chọn sự kiện **\"Khi nhấn vào nhân vật này\"**.",
+            "2. Thêm khối **\"Đổi trang phục kế tiếp\"**.",
+            "3. Thêm khối **\"Đổi hiệu ứng màu một lượng 25\"**.",
+            "4. Nhấn liên tục vào chú Mèo để xem nó đổi màu và hình dạng nhé!"
+        ]
+    }
+]

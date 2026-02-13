@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "532097021775",
+    "project_id": "scatch-13050",
+    "storage_bucket": "scatch-13050.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:532097021775:android:e11a7100c97862255db73a",
+        "android_client_info": {
+          "package_name": "com.example.scratch_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh-GU3UJvY2caG1E7gmQHDeWwlKZIh-rM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

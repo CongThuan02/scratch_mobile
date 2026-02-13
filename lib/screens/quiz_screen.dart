@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/quiz.dart';
+import '../services/progress_service.dart';
 import '../utils/constants.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -45,15 +46,29 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _showResultDialog() {
+    // Save Score
+    ProgressService().saveQuizScore(widget.quizzes.first.lessonId, _score);
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
             title: Text('Kết quả', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-            content: Text(
-              'Bạn đã trả lời đúng $_score / ${widget.quizzes.length} câu hỏi!',
-              style: GoogleFonts.poppins(),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bạn đã trả lời đúng $_score / ${widget.quizzes.length} câu hỏi!',
+                  style: GoogleFonts.poppins(fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Điểm cao nhất: ${ProgressService().getQuizScore(widget.quizzes.first.lessonId)}', // Show high score (updated)
+                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
             ),
             actions: [
               TextButton(

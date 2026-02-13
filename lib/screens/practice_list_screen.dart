@@ -27,6 +27,7 @@ class PracticeListScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              // ignore: deprecated_member_use
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))],
             ),
             child: ListTile(

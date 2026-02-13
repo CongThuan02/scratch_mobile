@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../blocs/lesson/lesson_cubit.dart';
+import '../blocs/lesson/lesson_state.dart';
 import '../models/lesson.dart';
+import '../services/progress_service.dart';
+import '../services/lesson_service.dart';
 import '../utils/ad_helper.dart'; // Import AdHelper
 import '../utils/constants.dart';
-import '../utils/dummy_data.dart';
 import 'lesson_screen.dart';
 import 'practice_list_screen.dart';
 
@@ -45,59 +48,156 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class LessonListTab extends StatefulWidget {
+class LessonListTab extends StatelessWidget {
   const LessonListTab({super.key});
 
   @override
-  State<LessonListTab> createState() => _LessonListTabState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create:
+          (context) => LessonCubit(lessonService: LessonService(), progressService: ProgressService())..loadLessons(),
+      child: const LessonlistView(),
+    );
+  }
 }
 
-class _LessonListTabState extends State<LessonListTab> {
-  final Set<String> _unlockedLessonIds = {'1'}; // Lesson 1 is always unlocked
-  final AdHelper _adHelper = AdHelper();
+class LessonlistView extends StatelessWidget {
+  const LessonlistView({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    _adHelper.createRewardedInterstitialAd();
-    _loadUnlockedLessons();
+  Widget build(BuildContext context) {
+    return BlocListener<LessonCubit, LessonState>(
+      listener: (context, state) {
+        if (state is LessonError) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
+      child: BlocBuilder<LessonCubit, LessonState>(
+        builder: (context, state) {
+          if (state is LessonLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is LessonError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Đã xảy ra lỗi: ${state.message}',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.read<LessonCubit>().loadLessons(),
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (state is LessonLoaded) {
+            final lessons = state.lessons;
+            final unlockedLessonIds = state.unlockedLessonIds;
+
+            if (lessons.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.sentiment_dissatisfied, size: 48, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text('Chưa có bài học nào.', style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey)),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => context.read<LessonCubit>().seedData(),
+                      icon: const Icon(Icons.cloud_upload),
+                      label: const Text('Tải dữ liệu mẫu'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return Scaffold(
+              backgroundColor: AppColors.background,
+              appBar: AppBar(
+                title: Text(
+                  AppStrings.appName,
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                backgroundColor: AppColors.primary,
+                elevation: 0,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.cloud_upload),
+                    tooltip: 'Tải lại dữ liệu mẫu',
+                    onPressed: () => context.read<LessonCubit>().seedData(),
+                  ),
+                ],
+              ),
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppStrings.homeTitle,
+                        style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.text),
+                      ),
+                      const SizedBox(height: 16),
+                      ListView.separated(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: lessons.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final lesson = lessons[index];
+                          final isLocked = !unlockedLessonIds.contains(lesson.id);
+                          return LessonCard(
+                            lesson: lesson,
+                            isLocked: isLocked,
+                            onTap: () => _handleLessonTap(context, lesson, isLocked),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return const SizedBox.shrink(); // Initial state
+        },
+      ),
+    );
   }
 
-  Future<void> _loadUnlockedLessons() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedIds = prefs.getStringList('unlockedLessons');
-    if (savedIds != null) {
-      setState(() {
-        _unlockedLessonIds.addAll(savedIds);
-      });
-    }
-  }
-
-  Future<void> _unlockLesson(String lessonId) async {
-    setState(() {
-      _unlockedLessonIds.add(lessonId);
-    });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('unlockedLessons', _unlockedLessonIds.toList());
-  }
-
-  void _handleLessonTap(Lesson lesson) {
-    if (_unlockedLessonIds.contains(lesson.id)) {
+  void _handleLessonTap(BuildContext context, Lesson lesson, bool isLocked) {
+    if (!isLocked) {
       Navigator.push(context, MaterialPageRoute(builder: (context) => LessonScreen(lesson: lesson)));
     } else {
       showDialog(
         context: context,
         builder:
-            (context) => AlertDialog(
+            (dialogContext) => AlertDialog(
               title: const Text('Mở khóa bài học'),
               content: const Text('Xem một quảng cáo ngắn để mở khóa bài học này nhé?'),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Để sau')),
+                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Để sau')),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
-                    _adHelper.showRewardedInterstitialAd(context, () {
-                      _unlockLesson(lesson.id);
+                    Navigator.pop(dialogContext);
+                    final adHelper = AdHelper();
+                    adHelper.createRewardedInterstitialAd();
+                    adHelper.showRewardedInterstitialAd(context, () {
+                      context.read<LessonCubit>().unlockLesson(lesson.id);
                       ScaffoldMessenger.of(
                         context,
                       ).showSnackBar(const SnackBar(content: Text('Đã mở khóa bài học! Chúc bạn học vui vẻ.')));
@@ -109,44 +209,6 @@ class _LessonListTabState extends State<LessonListTab> {
             ),
       );
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(AppStrings.appName, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppStrings.homeTitle,
-                style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.text),
-              ),
-              const SizedBox(height: 16),
-              ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: dummyLessons.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final lesson = dummyLessons[index];
-                  final isLocked = !_unlockedLessonIds.contains(lesson.id);
-                  return LessonCard(lesson: lesson, isLocked: isLocked, onTap: () => _handleLessonTap(lesson));
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 
